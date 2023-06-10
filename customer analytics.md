@@ -190,6 +190,92 @@ Checking summary statistics such as mean, min and max values for each feature to
                     Max.   :200.000   Max.   :650.000 
 
 
+There are no nulls in the columns but product quantity appears to have an outlier which we should investigate
+further. Let’s investigate further the case where 200 packets of chips are bought in one transaction
 
+```R
+#### Filter the dataset to find the outlier
+transactionData[PROD_QTY == 200, ]
+```
+         DATE STORE_NBR LYLTY_CARD_NBR TXN_ID PROD_NBR                        PROD_NAME PROD_QTY TOT_SALES
+1: 2018-08-19       226         226000 226201        4 Dorito Corn Chp     Supreme 380g      200       650
+2: 2019-05-20       226         226000 226210        4 Dorito Corn Chp     Supreme 380g      200       650
+
+There are two transactions where 200 packets of chips are bought in one transaction and both of these
+transactions where by the same customer.
+
+```R
+#### Let's see if the customer has had other transactions
+transactionData[LYLTY_CARD_NBR == 226000, ]
+```
+         DATE STORE_NBR LYLTY_CARD_NBR TXN_ID PROD_NBR                        PROD_NAME PROD_QTY TOT_SALES
+1: 2018-08-19       226         226000 226201        4 Dorito Corn Chp     Supreme 380g      200       650
+2: 2019-05-20       226         226000 226210        4 Dorito Corn Chp     Supreme 380g      200       650
+
+It looks like this customer has only had the two transactions over the year and is not an ordinary retail
+customer. The customer might be buying chips for commercial purposes instead. We’ll remove this loyalty
+card number from further analysis.
+
+```R
+#### Filter out the customer based on the loyalty card number
+transactionData <- transactionData[LYLTY_CARD_NBR != 226000, ]
+#### Re‐examine transaction data
+summary(transactionData)
+```
+      DATE              STORE_NBR     LYLTY_CARD_NBR        TXN_ID           PROD_NBR     
+ Min.   :2018-07-01   Min.   :  1.0   Min.   :   1000   Min.   :      1   Min.   :  1.00  
+ 1st Qu.:2018-09-30   1st Qu.: 70.0   1st Qu.:  70015   1st Qu.:  67569   1st Qu.: 26.00  
+ Median :2018-12-30   Median :130.0   Median : 130367   Median : 135182   Median : 53.00  
+ Mean   :2018-12-30   Mean   :135.1   Mean   : 135530   Mean   : 135130   Mean   : 56.35  
+ 3rd Qu.:2019-03-31   3rd Qu.:203.0   3rd Qu.: 203083   3rd Qu.: 202652   3rd Qu.: 87.00  
+ Max.   :2019-06-30   Max.   :272.0   Max.   :2373711   Max.   :2415841   Max.   :114.00  
+  PROD_NAME            PROD_QTY       TOT_SALES     
+ Length:246740      Min.   :1.000   Min.   : 1.700  
+ Class :character   1st Qu.:2.000   1st Qu.: 5.800  
+ Mode  :character   Median :2.000   Median : 7.400  
+                    Mean   :1.906   Mean   : 7.316  
+                    3rd Qu.:2.000   3rd Qu.: 8.800  
+                    Max.   :5.000   Max.   :29.500  
+                    
+ Now, let’s look at the number of transaction lines over time to see if there are any obvious data
+issues such as missing data.
+
+```R
+#### Count the number of transactions by date
+transactionData[, .N, by = DATE]
+```
+          DATE   N
+  1: 2018-10-17 682
+  2: 2019-05-14 705
+  3: 2019-05-20 707
+  4: 2018-08-17 663
+  5: 2018-08-18 683
+ ---               
+360: 2018-12-08 622
+361: 2019-01-30 689
+362: 2019-02-09 671
+363: 2018-08-31 658
+364: 2019-02-12 684
+
+There’s only 364 rows, meaning only 364 dates which indicates a missing date. Let’s create a sequence of
+dates from 1 Jul 2018 to 30 Jun 2019 and use this to create a chart of number of transactions over time to
+find the missing date.
+
+```R
+#### Create a sequence of dates and join this the count of transactions by date
+allDates <- data.table(seq(as.Date("2018/07/01"), as.Date("2019/06/30"), by = "day"))
+setnames(allDates, "DATE")
+transactions_by_day <- merge(allDates, transactionData[, .N, by = DATE], all.x = TRUE)
+#### Setting plot themes to format graphs
+theme_set(theme_bw())
+theme_update(plot.title = element_text(hjust = 0.5))
+#### Plot transactions over time
+ggplot(transactions_by_day, aes(x = DATE, y = N)) +
+  geom_line() +
+  labs(x = "Day", y = "Number of transactions", title = "Transactions over time") +
+  scale_x_date(breaks = "1 month") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+![TRANSACTION OVER TIME](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/a040cb2d-2fd8-4c54-9156-f4103917c838)
 
 
