@@ -523,3 +523,43 @@ p + geom_text(data = ggplot_build(p)$data[[1]], aes(x = (xmin + xmax)/2 , y =
 ```
 ![proportion sales](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/91b32e22-e733-40d9-add2-be55615a4ad3)
 
+Sales are coming mainly from Budget - older families, Mainstream - young singles/couples, and Mainstream - retirees
+Let’s see if the higher sales are due to there being more customers who buy chips.
+
+```R
+#### Number of customers by LIFESTAGE and PREMIUM_CUSTOMER
+customers <- data[, .(CUSTOMERS = uniqueN(LYLTY_CARD_NBR)), .(LIFESTAGE, PREMIUM_CUSTOMER)][order(-CUSTOMERS)]
+
+#### Create plot
+p <- ggplot(data = customers) +
+  geom_mosaic(aes(weight = CUSTOMERS, x = product(PREMIUM_CUSTOMER, LIFESTAGE), fill = PREMIUM_CUSTOMER)) +
+
+  labs(x = "Lifestage", y = "Premium customer flag", title = "Proportion of customers") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+#### Plot and label with proportion of customers
+p + geom_text(data = ggplot_build(p)$data[[1]], aes(x = (xmin + xmax)/2 , y =
+                                                      (ymin + ymax)/2, label = as.character(paste(round(.wt/sum(.wt),3)*100,
+                                                                                                  '%'))))
+```
+
+![PROPORION OF CUSOMERS 2](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/3acb2e21-0470-4e49-b66b-5143dc0d0ffa)
+
+There are more Mainstream - young singles/couples and Mainstream - retirees who buy chips. This contributes to there being more sales to these customer segments but this is not a major driver for the Budget - Older families segment.
+Higher sales may also be driven by more units of chips being bought per customer. Let’s have a look at this
+next.
+
+```R
+#### Average number of units per customer by LIFESTAGE and PREMIUM_CUSTOMER
+avg_units <- data[, .(AVG = sum(PROD_QTY)/uniqueN(LYLTY_CARD_NBR)), .(LIFESTAGE, PREMIUM_CUSTOMER)][order(-AVG)]
+#### Create plot
+ggplot(data = avg_units, aes(weight = AVG, x = LIFESTAGE, fill = PREMIUM_CUSTOMER)) +
+  geom_bar(position = position_dodge()) +
+  labs(x = "Lifestage", y = "Avg units per transaction", title = "Units per Customer") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+  ```
+  ![Units per customer](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/e4b94040-40f9-4448-a972-5ffeab1c0fe5)
+
+Older families and young families in general buy more chips per customer
+Let’s also investigate the average price per unit chips bought for each customer segment as this is also a
+driver of total sales.
+
