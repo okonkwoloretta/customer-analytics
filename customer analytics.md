@@ -161,7 +161,33 @@ productWords[, .N, words][order(N, decreasing = TRUE)]
 
 131:    Bolognese  1
 
+There are salsa products in the dataset but we are only interested in the chips category, so let’s remove
+these.
 
+```R
+#### Add SALSA column to transaction_data
+transactionData[, SALSA := grepl("salsa", tolower(PROD_NAME))]
+#### Remove salsa products
+transactionData <- transactionData[SALSA == FALSE, ][, SALSA := NULL]
+```
+
+Checking summary statistics such as mean, min and max values for each feature to see if there are any obvious outliers in the data and if there are any nulls in any of the columns
+(NA's : number of nulls will appear in the output if there are any nulls).
+
+    DATE              STORE_NBR     LYLTY_CARD_NBR        TXN_ID           PROD_NBR     
+ Min.   :2018-07-01   Min.   :  1.0   Min.   :   1000   Min.   :      1   Min.   :  1.00  
+ 1st Qu.:2018-09-30   1st Qu.: 70.0   1st Qu.:  70015   1st Qu.:  67569   1st Qu.: 26.00  
+ Median :2018-12-30   Median :130.0   Median : 130367   Median : 135183   Median : 53.00  
+ Mean   :2018-12-30   Mean   :135.1   Mean   : 135531   Mean   : 135131   Mean   : 56.35  
+ 3rd Qu.:2019-03-31   3rd Qu.:203.0   3rd Qu.: 203084   3rd Qu.: 202654   3rd Qu.: 87.00  
+ Max.   :2019-06-30   Max.   :272.0   Max.   :2373711   Max.   :2415841   Max.   :114.00  
+  PROD_NAME            PROD_QTY         TOT_SALES      
+ Length:246742      Min.   :  1.000   Min.   :  1.700  
+ Class :character   1st Qu.:  2.000   1st Qu.:  5.800  
+ Mode  :character   Median :  2.000   Median :  7.400  
+                    Mean   :  1.908   Mean   :  7.321  
+                    3rd Qu.:  2.000   3rd Qu.:  8.800  
+                    Max.   :200.000   Max.   :650.000 
 
 
 
