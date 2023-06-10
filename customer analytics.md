@@ -77,9 +77,39 @@ tibble [264,836 × 8] (S3: tbl_df/tbl/data.frame)
  
  $ TOT_SALES     : num [1:264836] 6 6.3 2.9 15 13.8 5.1 5.7 3.6 3.9 7.2 ...
 
+We should check that we are looking at the right products by examining PROD_NAME
 
+```R
+#### Examine PROD_NAME
+# Convert tibble to data.table
+transactionData <- as.data.table(transactionData)
 
+# Examine PROD_NAME
+transactionData[, .N, by = PROD_NAME]
+```
 
+                                    PROD_NAME    N
+                                    
+  1:   Natural Chip        Compny SeaSalt175g 1468
+  
+  2:                 CCs Nacho Cheese    175g 1498
+  
+  3:   Smiths Crinkle Cut  Chips Chicken 170g 1484
+  
+  4:   Smiths Chip Thinly  S/Cream&Onion 175g 1473
+  
+  5: Kettle Tortilla ChpsHny&Jlpno Chili 150g 3296
+ ---                                        
+ 
+110:    Red Rock Deli Chikn&Garlic Aioli 150g 1434
+
+111:      RRD SR Slow Rst     Pork Belly 150g 1526
+
+112:                 RRD Pc Sea Salt     165g 1431
+
+113:       Smith Crinkle Cut   Bolognese 150g 1451
+
+114:                 Doritos Salsa Mild  300g 1472
 
 
 
