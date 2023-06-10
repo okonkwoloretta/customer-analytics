@@ -563,3 +563,93 @@ Older families and young families in general buy more chips per customer
 Let’s also investigate the average price per unit chips bought for each customer segment as this is also a
 driver of total sales.
 
+```R
+#### Average price per unit by LIFESTAGE and PREMIUM_CUSTOMER
+avg_price <- data[, .(AVG = sum(TOT_SALES)/sum(PROD_QTY)), .(LIFESTAGE, PREMIUM_CUSTOMER)][order(-AVG)]
+                                                             
+#### Create plot
+ggplot(data = avg_price, aes(weight = AVG, x = LIFESTAGE, fill = PREMIUM_CUSTOMER)) +
+  geom_bar(position = position_dodge()) +
+  labs(x = "Lifestage", y = "Avg price per unit", title = "Price per unit") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+![Price per unit](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/e8ea7c5d-b8e7-4769-9192-50bc189ab088)
+
+Mainstream midage and young singles and couples are more willing to pay more per packet of chips compared to their budget and premium counterparts. This may be due to premium shoppers being more likely to
+buy healthy snacks and when they buy chips, this is mainly for entertainment purposes rather than their own
+consumption. This is also supported by there being fewer premium midage and young singles and couples
+buying chips compared to their mainstream counterparts.
+As the difference in average price per unit isn’t large, we can check if this difference is statistically different.
+
+```R
+#### Perform an independent t‐test between mainstream vs premium and budget midage and young singles and couples
+pricePerUnit <- data[, price := TOT_SALES/PROD_QTY]
+
+t.test(
+  data[LIFESTAGE %in% c("YOUNG SINGLES/COUPLES", "MIDAGE SINGLES/COUPLES") &
+         PREMIUM_CUSTOMER == "Mainstream", price],
+  data[LIFESTAGE %in% c("YOUNG SINGLES/COUPLES", "MIDAGE SINGLES/COUPLES") &
+         PREMIUM_CUSTOMER != "Mainstream", price]
+)
+```
+	Welch Two Sample t-test
+
+data:  data[LIFESTAGE %in% c("YOUNG SINGLES/COUPLES", "MIDAGE SINGLES/COUPLES") & PREMIUM_CUSTOMER == "Mainstream", price] and data[LIFESTAGE %in% c("YOUNG SINGLES/COUPLES", "MIDAGE SINGLES/COUPLES") & PREMIUM_CUSTOMER != "Mainstream", price]
+t = 37.624, df = 54791, p-value < 2.2e-16
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.3159319 0.3506572
+sample estimates:
+mean of x mean of y 
+ 4.039786  3.706491 
+ 
+ The t-test results in a p-value < 2.2e-16, i.e. the unit price for mainstream, young and mid-age singles and
+couples are significantly higher than that of budget or premium, young and midage singles and couples.
+
+## Deep dive into specific customer segments for insights
+
+We have found quite a few interesting insights that we can dive deeper into.
+We might want to target customer segments that contribute the most to sales to retain them or further
+increase sales. Let’s look at Mainstream - young singles/couples. For instance, let’s find out if they tend to
+buy a particular brand of chips.
+
+```R
+#### Deep dive into Mainstream, young singles/couples
+segment1 <- data[LIFESTAGE == "YOUNG SINGLES/COUPLES" & PREMIUM_CUSTOMER ==
+                   "Mainstream",]
+other <- data[!(LIFESTAGE == "YOUNG SINGLES/COUPLES" & PREMIUM_CUSTOMER ==
+                  "Mainstream"),]
+#### Brand affinity compared to the rest of the population
+quantity_segment1 <- segment1[, sum(PROD_QTY)]
+quantity_other <- other[, sum(PROD_QTY)]
+quantity_segment1_by_brand <- segment1[, .(targetSegment =
+                                             sum(PROD_QTY)/quantity_segment1), by = BRAND]
+quantity_other_by_brand <- other[, .(other = sum(PROD_QTY)/quantity_other), by
+                                  = BRAND]
+brand_proportions <- merge(quantity_segment1_by_brand,
+                           quantity_other_by_brand)[, affinityToBrand := targetSegment/other]
+brand_proportions[order(-affinityToBrand)]
+```
+
+        BRAND targetSegment       other affinityToBrand
+ 1:   TYRRELLS   0.031552795 0.025692464       1.2280953
+ 2:   TWISTIES   0.046183575 0.037876520       1.2193194
+ 3:    DORITOS   0.122760524 0.101074684       1.2145526
+ 4:     KETTLE   0.197984817 0.165553442       1.1958967
+ 5:   TOSTITOS   0.045410628 0.037977861       1.1957131
+ 6:   PRINGLES   0.119420290 0.100634769       1.1866703
+ 7:       COBS   0.044637681 0.039048861       1.1431238
+ 8:  INFUZIONS   0.064679089 0.057064679       1.1334347
+ 9:      THINS   0.060372671 0.056986370       1.0594230
+10:    GRNWVES   0.032712215 0.031187957       1.0488733
+11:   CHEEZELS   0.017971014 0.018646902       0.9637534
+12:     SMITHS   0.096369910 0.124583692       0.7735355
+13:     FRENCH   0.003947550 0.005758060       0.6855694
+14:    CHEETOS   0.008033126 0.012066591       0.6657329
+15:        RRD   0.043809524 0.067493678       0.6490908
+16:    NATURAL   0.019599724 0.030853989       0.6352412
+17:        CCS   0.011180124 0.018895650       0.5916771
+18:   SUNBITES   0.006349206 0.012580210       0.5046980
+19: WOOLWORTHS   0.024099379 0.049427188       0.4875733
+20:     BURGER   0.002926156 0.006596434       0.4435967
+
