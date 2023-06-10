@@ -1,10 +1,10 @@
-# Customer-Analytics
+# Customer Analytics
 
 
 ![istockphoto-1300021282-612x612](https://github.com/okonkwoloretta/customer-purchasing-behaviours/assets/116097143/a3d107ff-d365-4369-9232-d81164f6015a)
 [image source istockphoto](https://www.istockphoto.com/search/search-by-asset?affiliateredirect=true&assetid=1041147560&assettype=image&utm_campaign=srp_photos_top&utm_content=https%3A%2F%2Funsplash.com%2Fs%2Fphotos%2Fcustomer-shopping&utm_medium=affiliate&utm_source=unsplash&utm_term=customer+shopping%3A%3A%3A)
 
-##Background Info
+## Background Info
 
 Quantium’s retail analytics team have been approached by a client, the Category Manager for Chips, who wants to better understand the types of customers who purchase Chips and their purchasing behaviour within the region.
 The insights from my analysis will feed into the supermarket’s strategic plan for the chip category in the next half year.
