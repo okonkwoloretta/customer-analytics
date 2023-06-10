@@ -99,8 +99,7 @@ transactionData[, .N, by = PROD_NAME]
   4:   Smiths Chip Thinly  S/Cream&Onion 175g 1473
   
   5: Kettle Tortilla ChpsHny&Jlpno Chili 150g 3296
- ---                                        
- 
+                                         
 110:    Red Rock Deli Chikn&Garlic Aioli 150g 1434
 
 111:      RRD SR Slow Rst     Pork Belly 150g 1526
@@ -110,6 +109,59 @@ transactionData[, .N, by = PROD_NAME]
 113:       Smith Crinkle Cut   Bolognese 150g 1451
 
 114:                 Doritos Salsa Mild  300g 1472
+
+
+Looks like we are looking at potato chips but how can we check that these are all chips?
+We can do some basic text analysis by summarising the individual words in the product name.
+
+```R
+#### Examine the words in PROD_NAME to see if there are any products that are not chips
+productWords <- data.table(unlist(strsplit(unique(transactionData[,PROD_NAME]), " ")))
+setnames(productWords, 'words')
+```
+
+As we are only interested in words that will tell us if the product is chips or not, let’s remove all words with
+digits and special characters such as ‘&’ from our set of product words.
+
+```R
+### Using grepl
+#### Removing digits
+productWords <- productWords[grepl("\\d", words) == FALSE, ]
+#### Removing special characters
+productWords <- productWords[grepl("[:alpha:]", words), ]
+```
+Let's look at the most common words by counting the number of times a word appears and sorting them by this frequency in order of highest to lowest frequency
+
+```R
+#### sorting most common words by counting the number of times a word appears 
+productWords[, .N, words][order(N, decreasing = TRUE)]
+```
+
+           words  N
+           
+  1:        Chips 21
+  
+  2:       Smiths 16
+  
+  3:      Crinkle 14
+  
+  4:       Kettle 13
+  
+  5:       Cheese 12
+              
+127: Chikn&Garlic  1
+
+128:        Aioli  1
+
+129:         Slow  1
+
+130:        Belly  1
+
+131:    Bolognese  1
+
+131:    Bolognese  1
+
+
 
 
 
