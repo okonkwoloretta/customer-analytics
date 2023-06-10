@@ -278,4 +278,248 @@ ggplot(transactions_by_day, aes(x = DATE, y = N)) +
 ```
 ![TRANSACTION OVER TIME](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/a040cb2d-2fd8-4c54-9156-f4103917c838)
 
+We can see that there is an increase in purchases in December and a break in late December. Let’s zoom in
+on this.
+
+```R
+#### Filter to December and look at individual days
+ggplot(transactions_by_day[month(DATE) == 12, ], aes(x = DATE, y = N)) +
+  geom_line() +
+  labs(x = "Day", y = "Number of transactions", title = "Transactions over time") +
+  scale_x_date(breaks = "1 day") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+![Zoomed TRANSACTION OVER TIME](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/f41004d1-e5a6-4e4b-b864-675c67c08f2b)
+
+We can see that the increase in sales occurs in the lead-up to Christmas and that there are zero sales on
+Christmas day itself. This is due to shops being closed on Christmas day.
+Now that we are satisfied that the data no longer has outliers, we can move on to creating other features
+such as brand of chips or pack size from PROD_NAME. We will start with pack size
+
+```R
+#### Pack size
+#### We can work this out by taking the digits that are in PROD_NAME
+transactionData[, PACK_SIZE := parse_number(PROD_NAME)]
+#### Always check your output
+#### Let's check if the pack sizes look sensible
+transactionData[, .N, PACK_SIZE][order(PACK_SIZE)]
+```
+
+    PACK_SIZE     N
+ 1:        70  1507
+ 2:        90  3008
+ 3:       110 22387
+ 4:       125  1454
+ 5:       134 25102
+ 6:       135  3257
+ 7:       150 40203
+ 8:       160  2970
+ 9:       165 15297
+10:       170 19983
+11:       175 66390
+12:       180  1468
+13:       190  2995
+14:       200  4473
+15:       210  6272
+16:       220  1564
+17:       250  3169
+18:       270  6285
+19:       330 12540
+20:       380  6416
+
+The largest size is 380g and the smallest size is 70g - seems sensible!
+
+```R
+#### Let's plot a histogram of PACK_SIZE since we know that it is a categorical variable and not a continuous variable even though it is numeric.
+hist(transactionData[, PACK_SIZE])
+```
+![Zoomed TRANSACTION OVER TIME](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/b8b3651d-dc66-450b-b610-4a6beee5b21f)
+
+Pack sizes created look reasonable and now to create brands, we can use the first word in PROD_NAME to
+work out the brand name
+
+```R
+#### Brands
+transactionData[, BRAND := toupper(substr(PROD_NAME, 1, regexpr(pattern = ' ', PROD_NAME) - 1))]
+#### Checking brands
+transactionData[, .N, by = BRAND][order(-N)]
+```
+         BRAND     N
+ 1:     KETTLE 41288
+ 2:     SMITHS 27390
+ 3:   PRINGLES 25102
+ 4:    DORITOS 22041
+ 5:      THINS 14075
+ 6:        RRD 11894
+ 7:  INFUZIONS 11057
+ 8:         WW 10320
+ 9:       COBS  9693
+10:   TOSTITOS  9471
+11:   TWISTIES  9454
+12:   TYRRELLS  6442
+13:      GRAIN  6272
+14:    NATURAL  6050
+15:   CHEEZELS  4603
+16:        CCS  4551
+17:        RED  4427
+18:     DORITO  3183
+19:     INFZNS  3144
+20:      SMITH  2963
+21:    CHEETOS  2927
+22:      SNBTS  1576
+23:     BURGER  1564
+24: WOOLWORTHS  1516
+25:    GRNWVES  1468
+26:   SUNBITES  1432
+27:        NCC  1419
+28:     FRENCH  1418
+         BRAND     N
+        
+Some of the brand names look like they are of the same brands - such as RED and RRD, which are both Red
+Rock Deli chips. Let’s combine these together.
+
+```R
+#### Clean brand names
+transactionData[BRAND == "RED", BRAND := "RRD"]
+transactionData[BRAND == "SNBTS", BRAND := "SUNBITES"]
+transactionData[BRAND == "INFZNS", BRAND := "INFUZIONS"]
+transactionData[BRAND == "WW", BRAND := "WOOLWORTHS"]
+transactionData[BRAND == "SMITH", BRAND := "SMITHS"]
+transactionData[BRAND == "NCC", BRAND := "NATURAL"]
+transactionData[BRAND == "DORITO", BRAND := "DORITOS"]
+transactionData[BRAND == "GRAIN", BRAND := "GRNWVES"]
+#### Check again
+transactionData[, .N, by = BRAND][order(BRAND)]
+```
+         BRAND     N
+ 1:     BURGER  1564
+ 2:        CCS  4551
+ 3:    CHEETOS  2927
+ 4:   CHEEZELS  4603
+ 5:       COBS  9693
+ 6:    DORITOS 25224
+ 7:     FRENCH  1418
+ 8:    GRNWVES  7740
+ 9:  INFUZIONS 14201
+10:     KETTLE 41288
+11:    NATURAL  7469
+12:   PRINGLES 25102
+13:        RRD 16321
+14:     SMITHS 30353
+15:   SUNBITES  3008
+16:      THINS 14075
+17:   TOSTITOS  9471
+18:   TWISTIES  9454
+19:   TYRRELLS  6442
+20: WOOLWORTHS 11836
+
+Examining customer data
+Now that we are happy with the transaction dataset, let’s have a look at the customer dataset.
+
+```R
+#### Examining customer data
+str(customerData)
+```
+
+Classes ‘data.table’ and 'data.frame':	72637 obs. of  3 variables:
+ $ LYLTY_CARD_NBR  : num  1000 1002 1003 1004 1005 ...
+ $ LIFESTAGE       : chr  "YOUNG SINGLES/COUPLES" "YOUNG SINGLES/COUPLES" "YOUNG FAMILIES" "OLDER SINGLES/COUPLES" ...
+ $ PREMIUM_CUSTOMER: chr  "Premium" "Mainstream" "Budget" "Mainstream" ...
+ 
+ ```R
+ summary(customerData)
+```
+ LYLTY_CARD_NBR     LIFESTAGE         PREMIUM_CUSTOMER  
+ Min.   :   1000   Length:72637       Length:72637      
+ 1st Qu.:  66202   Class :character   Class :character  
+ Median : 134040   Mode  :character   Mode  :character  
+ Mean   : 136186                                        
+ 3rd Qu.: 203375                                        
+ Max.   :2373711  
+ 
+ Let’s have a closer look at the LIFESTAGE and PREMIUM_CUSTOMER columns.
+ 
+ ```R
+ #### Examining the values of lifestage and premium_customer
+customerData[, .N, by = LIFESTAGE][order(-N)]
+```
+                LIFESTAGE     N
+1:               RETIREES 14805
+2:  OLDER SINGLES/COUPLES 14609
+3:  YOUNG SINGLES/COUPLES 14441
+4:         OLDER FAMILIES  9780
+5:         YOUNG FAMILIES  9178
+6: MIDAGE SINGLES/COUPLES  7275
+7:           NEW FAMILIES  2549
+
+```R
+customerData[, .N, by = PREMIUM_CUSTOMER][order(-N)]
+```
+   PREMIUM_CUSTOMER     N
+1:       Mainstream 29245
+2:           Budget 24470
+3:          Premium 18922
+
+As there do not seem to be any issues with the customer data, we can now go ahead and join the transaction
+and customer data sets together
+
+As the number of rows in data is the same as that of transactionData, we can be sure that no duplicates
+were created. This is because we created data by setting all.x = TRUE (in other words, a left join) which
+means take all the rows in transactionData and find rows with matching values in shared columns and
+then joining the details in these rows to the x or the first mentioned table.
+Let’s also check if some customers were not matched on by checking for nulls.
+
+```R
+#### Checking for null
+data[is.null(LIFESTAGE), .N]
+```
+[1] 0
+```R
+data[is.null(PREMIUM_CUSTOMER), .N]
+```
+[1] 0
+
+Great, there are no nulls! So all our customers in the transaction data has been accounted for in the customer
+dataset.
+
+```R
+## set file path to my document
+filePath <- "C:/Users/LORA/Documents/Quantium Virtual Internship/" 
+fwrite(data, file = paste0(filePath, "QVI_data.csv"))
+```
+saving our cleaned dataset for further analysis
+Data exploration is now complete!
+Data analysis on customer segments
+Now that the data is ready for analysis, we can define some metrics of interest to the client:
+
+• Who spends the most on chips (total sales), describing customers by lifestage and how premium their
+general purchasing behaviour is
+• How many customers are in each segment
+• How many chips are bought per customer by segment
+• What’s the average chip price by customer segment
+We could also ask our data team for more information. 
+Examples are:
+• The customer’s total spend over the period and total spend for each transaction to understand what
+proportion of their grocery spend is on chips
+• Proportion of customers in each customer segment overall to compare against the mix of customers
+who purchase chips
+
+Let’s start with calculating total sales by LIFESTAGE and PREMIUM_CUSTOMER and plotting the split by
+these segments to describe which customer segment contribute most to chip sales.
+
+```R
+#### Total sales by LIFESTAGE and PREMIUM_CUSTOMER
+sales <- data[, .(SALES = sum(TOT_SALES)), .(LIFESTAGE, PREMIUM_CUSTOMER)]
+#### Create plot
+p <- ggplot(data = sales) +
+  geom_mosaic(aes(weight = SALES, x = product(PREMIUM_CUSTOMER, LIFESTAGE), fill = PREMIUM_CUSTOMER)) +
+  labs(x = "Lifestage", y = "Premium customer flag", title = "Proportion of sales") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+#### Plot and label with proportion of sales
+p + geom_text(data = ggplot_build(p)$data[[1]], aes(x = (xmin + xmax)/2 , y =
+                                                      (ymin + ymax)/2, label = as.character(paste(round(.wt/sum(.wt),3)*100,
+                                                                                                  '%'))))
+
+```
+![proportion sales](https://github.com/okonkwoloretta/customer-analytics/assets/116097143/91b32e22-e733-40d9-add2-be55615a4ad3)
 
