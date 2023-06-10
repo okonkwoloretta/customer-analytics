@@ -653,3 +653,49 @@ brand_proportions[order(-affinityToBrand)]
 19: WOOLWORTHS   0.024099379 0.049427188       0.4875733
 20:     BURGER   0.002926156 0.006596434       0.4435967
 
+We can see that :
+• Mainstream young singles/couples are 23% more likely to purchase Tyrrells chips compared to the
+rest of the population
+• Mainstream young singles/couples are 56% less likely to purchase Burger Rings compared to the rest
+of the population
+Let’s also find out if our target segment tends to buy larger packs of chips.
+
+```R
+#### Preferred pack size compared to the rest of the population
+quantity_segment1_by_pack <- segment1[, .(targetSegment =
+                                            sum(PROD_QTY)/quantity_segment1), by = PACK_SIZE]
+quantity_other_by_pack <- other[, .(other = sum(PROD_QTY)/quantity_other), by =
+                                   PACK_SIZE]
+pack_proportions <- merge(quantity_segment1_by_pack, quantity_other_by_pack)[,
+                                                                             affinityToPack := targetSegment/other]
+pack_proportions[order(-affinityToPack)]
+```
+    PACK_SIZE targetSegment       other affinityToPack
+ 1:       270   0.031828847 0.025095929      1.2682873
+ 2:       380   0.032160110 0.025584213      1.2570295
+ 3:       330   0.061283644 0.050161917      1.2217166
+ 4:       134   0.119420290 0.100634769      1.1866703
+ 5:       110   0.106280193 0.089791190      1.1836372
+ 6:       210   0.029123533 0.025121265      1.1593180
+ 7:       135   0.014768806 0.013075403      1.1295106
+ 8:       250   0.014354727 0.012780590      1.1231662
+ 9:       170   0.080772947 0.080985964      0.9973697
+10:       150   0.157598344 0.163420656      0.9643722
+11:       175   0.254989648 0.270006956      0.9443818
+12:       165   0.055652174 0.062267662      0.8937572
+13:       190   0.007481021 0.012442016      0.6012708
+14:       180   0.003588682 0.006066692      0.5915385
+15:       160   0.006404417 0.012372920      0.5176157
+16:        90   0.006349206 0.012580210      0.5046980
+17:       125   0.003008972 0.006036750      0.4984423
+18:       200   0.008971705 0.018656115      0.4808989
+19:        70   0.003036577 0.006322350      0.4802924
+20:       220   0.002926156 0.006596434      0.4435967
+
+It looks like Mainstream young singles/couples are 27% more likely to purchase a 270g pack of chips compared to the rest of the population but let’s dive into what brands sell this pack size.
+
+```R
+data[PACK_SIZE == 270, unique(PROD_NAME)]
+```
+"Twisties Cheese     270g" "Twisties Chicken270g" 
+
