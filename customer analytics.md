@@ -699,3 +699,17 @@ data[PACK_SIZE == 270, unique(PROD_NAME)]
 ```
 "Twisties Cheese     270g" "Twisties Chicken270g" 
 
+Twisties are the only brand offering 270g packs and so this may instead be reflecting a higher likelihood of
+purchasing Twisties.
+
+## Conclusion
+
+Sales have mainly been due to Budget - older families, Mainstream - young singles/couples, and Mainstream - retirees shoppers. 
+We found that the high spend in chips for mainstream young singles/couples and retirees is due to there being more of them than other buyers. 
+Mainstream, midage and young singles and couples are also more likely to pay more per packet of chips. 
+This is indicative of impulse buying behaviour.
+We’ve also found that Mainstream young singles and couples are 23% more likely to purchase Tyrrells chips
+compared to the rest of the population. 
+The Category Manager may want to increase the category’s performance by off-locating some Tyrrells and smaller packs of chips in discretionary space near segments where young singles and couples frequent more often to increase visibilty and impulse behaviour.
+Quantium can help the Category Manager with recommendations of where these segments are and further help them with measuring the impact of the changed placement. 
+We’ll work on measuring the impact of trials in the next task and putting all these together in the third task.
