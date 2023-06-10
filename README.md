@@ -15,4 +15,4 @@ Deep dive into customer segments – define your recommendation from your insigh
 
 Make sure you save your analysis in the CSV files and your visualisations – we will need them for our report.
 
-## Link to solution
+## Link to [solution](https://github.com/okonkwoloretta/customer-purchasing-behaviours/blob/main/customer%20analytics.md)
